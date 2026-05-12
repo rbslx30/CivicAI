@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up | CivicAI</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><div class="orb orb-1"></div></div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <main class="page-wrapper" style="justify-content: center; align-items: center; min-height: 100vh;">
+    <div class="card" style="width: 100%; max-width: 400px;">
+      <div class="card-header" style="text-align: center; justify-content: center;">
+        <h2 class="card-title">Create Account</h2>
+      </div>
+      <form id="signup-form" style="display: flex; flex-direction: column; gap: 16px;">
+        <div class="field-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" required placeholder="e.g. Ramesh Kumar" />
+        </div>
+        <div class="field-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" required placeholder="e.g. user@example.com" />
+        </div>
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="••••••••" />
+        </div>
+        <div id="auth-error" class="form-error"></div>
+        <button type="submit" class="btn-submit">Register</button>
+      </form>
+      <p style="text-align: center; margin-top: 16px; font-size: 14px; color: var(--text-muted);">
+        Already have an account? <a href="login.html" style="color: var(--violet-lt); text-decoration: none;">Sign In</a>
+      </p>
+    </div>
+  </main>
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorBox = document.getElementById('auth-error');
+      
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = 'login.html';
+        } else {
+          errorBox.textContent = data.message;
+          errorBox.classList.add('visible');
+        }
+      } catch (err) {
+        errorBox.textContent = "Server connection failed.";
+        errorBox.classList.add('visible');
+      }
+    });
+  </script>
+</body>
+</html>

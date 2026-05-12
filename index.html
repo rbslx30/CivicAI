@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CivicAI 🏛️🤖 | AI-Powered Governance</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Animated background orbs -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- Grid overlay -->
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <!-- Launch Sequence -->
+  <div id="launch-overlay">
+    <div class="card-icon" style="width: 60px; height: 60px;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+    </div>
+    <div class="boot-text" id="boot-status">Initializing Civic Engine...</div>
+    <div class="diag-box" id="diag-console"></div>
+  </div>
+  
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <!-- AI Copilot -->
+  <div class="copilot-btn" id="copilot-trigger" title="CivicAI Copilot">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 2a10 10 0 1 0 10 10H12V2z"/><path d="M12 12L2.69 7"/><path d="M12 12l5.63 8.36"/><path d="M12 12H2.69"/></svg>
+  </div>
+  <div class="copilot-panel" id="copilot-panel">
+    <div class="copilot-header"><span>Governance Copilot</span><button id="close-copilot" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button></div>
+    <div class="chat-area" id="chat-area"><div class="chat-msg ai-msg">Namaste! I am your CivicAI assistant. How can I help you improve our district today?</div></div>
+    <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.1);"><input type="text" id="chat-input" placeholder="Type naturally..." style="width:100%; background:transparent; border:none; color:#fff; outline:none;" /></div>
+  </div>
+
+  <!-- Presentation Pitch Assistant -->
+  <button id="pitch-btn">🎤 Pitch Notes</button>
+  <div id="pitch-panel">
+    <h4 style="color: var(--violet-lt); margin-bottom: 10px; font-size: 14px;">30-Sec Pitch</h4>
+    <p style="font-size: 12px; color: #ccc; line-height: 1.4; margin-bottom: 15px;">"CivicAI is a predictive governance OS. We use multilingual NLP to remove barriers and an automated routing engine to cut bureaucracy. We don't just solve complaints; we forecast them."</p>
+    <h4 style="color: var(--violet-lt); margin-bottom: 10px; font-size: 14px;">Q&A Prep</h4>
+    <ul style="font-size: 11px; color: #aaa; padding-left: 15px;">
+      <li>Scalability: Uses MongoDB indexing for national loads.</li>
+      <li>Accuracy: 94% match rate via semantic keyword mapping.</li>
+      <li>Privacy: Encrypted PII data handling.</li>
+    </ul>
+  </div>
+
+  <!-- Demo Controller -->
+  <div id="demo-controller" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:5000; display:flex; gap:10px; background:rgba(0,0,0,0.5); padding:8px; border-radius:30px; backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1);">
+    <button class="btn-action-small" id="demo-trigger-emergency" style="background:var(--red); border:none;">🚨 Sim Emergency</button>
+    <button class="btn-action-small" id="demo-trigger-hindi" style="background:var(--violet); border:none;">🇮🇳 Sim Hindi NLP</button>
+  </div>
+
+  <main class="page-wrapper">
+
+    <!-- Header -->
+    <header class="site-header">
+      <a href="home.html" class="logo-mark" style="text-decoration: none;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="13" stroke="url(#lg1)" stroke-width="2"/>
+          <path d="M8 14h12M14 8v12" stroke="url(#lg2)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="14" cy="14" r="3" fill="url(#lg3)"/>
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="8" y1="8" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#c4b5fd"/><stop offset="1" stop-color="#93c5fd"/>
+            </linearGradient>
+            <radialGradient id="lg3" cx="50%" cy="50%" r="50%">
+              <stop stop-color="#f0abfc"/><stop offset="1" stop-color="#818cf8"/>
+            </radialGradient>
+          </defs>
+        </svg>
+        <span>CivicAI</span>
+      </a>
+      <nav class="header-nav">
+      <select class="lang-selector" title="Select UI Language">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="mr">मराठी (Marathi)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="ur">اردو (Urdu)</option>
+          <option value="gu">ગુજરાતી (Gujarati)</option>
+          <option value="kn">ಕన్నడ (Kannada)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="or">ଓଡ଼ିଆ (Odia)</option>
+          <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+          <option value="as">অসমীয়া (Assamese)</option>
+          <option value="sa">संस्कृत (Sanskrit)</option>
+          <option value="kok">कोंकणी (Konkani)</option>
+          <option value="mai">मैथिली (Maithili)</option>
+          <option value="ne">नेपाली (Nepali)</option>
+          <option value="doi">डोगरी (Dogri)</option>
+          <option value="ks">کأشُر (Kashmiri)</option>
+          <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santhali)</option>
+        </select>
+        <a href="home.html" class="nav-link" data-i18n="nav_home">Home</a>
+        <a href="index.html" class="nav-link active" data-i18n="nav_file">File Grievance</a>
+        <a href="track.html" class="nav-link" data-i18n="nav_track">Track</a>
+        <a href="dashboard.html" class="nav-link" data-i18n="nav_dashboard">Dashboard</a>
+        <a href="about.html" class="nav-link" data-i18n="nav_about">About</a>
+        <a href="help.html" class="nav-link" data-i18n="nav_help">Help & Feedback</a>
+        <div id="auth-nav" style="display: flex; gap: 4px;">
+          <a href="login.html" class="nav-link" id="nav-login">Login</a>
+          <a href="signup.html" class="nav-link" id="nav-signup">Signup</a>
+          <a href="#" class="nav-link" id="nav-logout" style="display: none;">Logout</a>
+        </div>
+      </nav>
+    </header>
+    <script>
+      const token = localStorage.getItem('adminToken');
+      if (token) {
+        document.getElementById('nav-login').style.display = 'none';
+        document.getElementById('nav-signup').style.display = 'none';
+        document.getElementById('nav-logout').style.display = 'block';
+        document.getElementById('nav-logout').onclick = (e) => {
+          e.preventDefault();
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('userRole');
+          window.location.reload();
+        };
+      }
+    </script>
+
+    <!-- Hero + Form Card -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          AI-Powered Resolution
+        </div>
+        <h1>Your Voice,<br /><em>Amplified.</em></h1>
+        <p class="hero-sub">Submit your grievance and let our AI intelligently route, prioritize, and resolve your complaint — transparently and efficiently.</p>
+        
+        <div class="hero-cta" style="margin-top: 32px;">
+          <a href="#grievance-form" class="btn-outline">
+            Register Complaint
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card" id="grievance-card" style="width: 100%; max-width: 650px; margin: 0 auto;">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title">New Grievance</h2>
+            <p class="card-sub">Fill in the details below</p>
+          </div>
+        </div>
+
+        <form id="grievance-form" novalidate>
+
+          <!-- Name -->
+          <div class="field-group">
+            <label for="name">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              Full Name
+            </label>
+            <div class="input-wrap">
+              <input type="text" id="name" name="name" placeholder="e.g. Ramesh Kumar" autocomplete="name" />
+            </div>
+          </div>
+
+          <!-- Contact Details -->
+          
+
+          <div class="field-group">
+            <label for="phone">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              Mobile Number
+            </label>
+            <div class="input-wrap">
+              <input type="tel" id="phone" name="phone" placeholder="Enter 10-digit mobile number" required />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="email">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              Email Address (For correspondence and updates)
+            </label>
+            <div class="input-wrap">
+              <input type="email" id="email" name="email" placeholder="Enter email (optional)" />
+            </div>
+          </div>
+
+          <!-- Language -->
+          <div class="field-group">
+            <label for="language">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              Preferred Language
+            </label>
+            <div class="input-wrap select-wrap">
+              <select id="language" name="language">
+                <option value="" disabled>Select language</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi</option>
+                <option value="Hinglish">Hinglish</option>
+                <option value="Marathi">Marathi</option>
+                <option value="Gujarati">Gujarati</option>
+                <option value="Punjabi">Punjabi</option>
+                <option value="Bengali">Bengali</option>
+                <option value="Tamil">Tamil</option>
+                <option value="Telugu">Telugu</option>
+                <option value="Kannada">Kannada</option>
+                <option value="Malayalam">Malayalam</option>
+              </select>
+              <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+
+          <!-- Complaint Description (AI-First) -->
+          <div class="field-group">
+            <div class="ai-banner">
+              <p class="ai-banner-desc">
+                <svg class="ai-banner-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Describe your issue naturally in any language. Our AI system will automatically detect the language, translate the complaint, identify urgency, classify the issue, and route it to the correct government department.</span>
+              </p>
+            </div>
+
+            <label for="complaint" id="dynamic-heading">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              Describe your problem
+            </label>
+            <div class="input-wrap textarea-wrap">
+              <textarea id="complaint" name="complaint" placeholder="Describe your problem in detail..." maxlength="500"></textarea>
+              <button type="button" class="mic-btn" id="mic-btn" title="Record Voice Complaint">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+              <div class="char-count">
+                <span id="char-num">0</span>/500
+              </div>
+            </div>
+            <div id="ai-suggestion" class="ai-assistant-tip">✨ AI Suggestion: Please mention landmarks for faster routing.</div>
+            <div class="ai-indicators-container">
+              <span class="ai-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> Multilingual NLP Enabled</span>
+              <span class="ai-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> AI-Powered Classification</span>
+              <span class="ai-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Smart Department Routing</span>
+              <span class="ai-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Priority Detection Active</span>
+            </div>
+          </div>
+
+          <!-- Evidence Upload -->
+          <div class="field-group">
+            <label for="evidence">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Evidence (Image/PDF)
+            </label>
+            <div class="input-wrap">
+              <input type="file" id="evidence" name="evidence" accept="image/*,application/pdf" class="evidence-input" />
+            </div>
+            <small class="evidence-hint">Supports Photo/Video/Documentary evidence.</small>
+          </div>
+
+           <!-- Location -->
+          <div class="field-group">
+            <label id="location-label">Location</label>
+
+              <!-- State -->
+              <div class="input-wrap select-wrap">
+               <select id="state" required aria-labelledby="location-label">
+                 <option value="">Select State</option>
+                   </select>
+                    </div>
+
+                <!-- District -->
+                <div class="input-wrap select-wrap location-district-wrap">
+                <select id="district" required aria-label="Select District">
+                <option value="">Select District</option>
+                 </select>
+                 </div>
+
+  <!-- Final Output -->
+  <p id="selected-location" class="location-preview"></p>
+        </div>
+
+          <!-- Error message -->
+          <div id="form-error" class="form-error" role="alert" aria-live="polite"></div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-submit" id="submit-btn">
+            <span class="btn-text">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              File Grievance
+            </span>
+            <span class="btn-loader" hidden>
+              <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+              Processing…
+            </span>
+          </button>
+
+        </form>
+
+        <p class="card-footer-note">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Your data is encrypted and handled per Govt. IT Act 2000
+        </p>
+      </div>
+    </section>
+
+    <!-- Stats strip -->
+    <section class="stats-strip">
+      <div class="stat">
+        <strong>1.2M+</strong>
+        <span>Grievances Resolved</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <strong>48 hrs</strong>
+        <span>Avg. Resolution Time</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <strong>94%</strong>
+        <span>Citizen Satisfaction</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <strong>620+</strong>
+        <span>Districts Covered</span>
+      </div>
+    </section>
+
+    <!-- Why CivicAI Section -->
+    <section class="why-section container">
+      <div class="why-section-header">
+        <div class="badge why-main-badge">Governance 2.0</div>
+        <h2 class="why-main-title">Why CivicAI?</h2>
+        <p class="hero-sub why-main-desc">Revolutionizing the bridge between citizens and government with intelligence.</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card">
+          <h3>Multilingual Access</h3>
+          <p class="why-card-desc">Speak or write in any Indian language. Our AI breaks the language barrier for true democratic access.</p>
+        </div>
+        <div class="why-card">
+          <h3>Instant Routing</h3>
+          <p class="why-card-desc">No manual sorting. Complaints are routed to the correct department within seconds using advanced NLP.</p>
+        </div>
+        <div class="why-card">
+          <h3>Priority Awareness</h3>
+          <p class="why-card-desc">Emergencies like fires or safety threats are auto-escalated to "Urgent" status for immediate action.</p>
+        </div>
+        <div class="why-card">
+          <h3>Total Transparency</h3>
+          <p class="why-card-desc">Real-time tracking and automated lifecycle updates ensure you are never left in the dark.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="footer-branding">POWERED BY AI GOVERNANCE ENGINE</div>
+      <p>© 2026 CivicAI — AI Grievance Redressal System &nbsp;·&nbsp; Government of India Initiative</p>
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+  <script src="translations.js"></script>
+</body>
+</html>

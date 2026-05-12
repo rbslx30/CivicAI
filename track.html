@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track Grievance — CivicAI</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="track.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <main class="page-wrapper">
+    <header class="site-header">
+      <a href="home.html" class="logo-mark" style="text-decoration: none;">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="14" cy="14" r="13" stroke="url(#lg1)" stroke-width="2"/>
+          <path d="M8 14h12M14 8v12" stroke="url(#lg2)" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="14" cy="14" r="3" fill="url(#lg3)"/>
+          <defs>
+            <linearGradient id="lg1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#a78bfa"/><stop offset="1" stop-color="#60a5fa"/>
+            </linearGradient>
+            <linearGradient id="lg2" x1="8" y1="8" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#c4b5fd"/><stop offset="1" stop-color="#93c5fd"/>
+            </linearGradient>
+            <radialGradient id="lg3" cx="50%" cy="50%" r="50%">
+              <stop stop-color="#f0abfc"/><stop offset="1" stop-color="#818cf8"/>
+            </radialGradient>
+          </defs>
+        </svg>
+        <span>CivicAI</span>
+      </a>
+      <nav class="header-nav">
+        <select class="lang-selector">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="mr">मराठी (Marathi)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="ur">اردو (Urdu)</option>
+          <option value="gu">ગુજરાતી (Gujarati)</option>
+          <option value="kn">ಕన్నడ (Kannada)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="or">ଓଡ଼ିଆ (Odia)</option>
+          <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+          <option value="as">অসমীয়া (Assamese)</option>
+          <option value="sa">संस्कृत (Sanskrit)</option>
+          <option value="kok">कोंकणी (Konkani)</option>
+          <option value="mai">मैथिली (Maithili)</option>
+          <option value="ne">नेपाली (Nepali)</option>
+          <option value="doi">डोगरी (Dogri)</option>
+          <option value="ks">کأشُر (Kashmiri)</option>
+          <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santhali)</option>
+        </select>
+        <a href="home.html" class="nav-link" data-i18n="nav_home">Home</a>
+        <a href="index.html" class="nav-link" data-i18n="nav_file">File Grievance</a>
+        <a href="track.html" class="nav-link active" data-i18n="nav_track">Track</a>
+        <a href="dashboard.html" class="nav-link" data-i18n="nav_dashboard">Dashboard</a>
+        <a href="about.html" class="nav-link" data-i18n="nav_about">About</a>
+        <a href="help.html" class="nav-link" data-i18n="nav_help">Help & Feedback</a>
+      </nav>
+    </header>
+
+    <div class="track-wrapper">
+      <div class="card" style="width: 100%; max-width: 500px;">
+        <div class="card-header" style="justify-content: center; text-align: center; flex-direction: column; border-bottom: none; padding-bottom: 0;">
+          <h2 class="card-title" style="font-size: 24px;">Track Complaint</h2>
+          <p class="card-sub">Check real-time status of your grievance</p>
+        </div>
+
+        <form id="track-form" style="margin-top: 24px;">
+          <div class="field-group">
+            <label for="track-id">Application Number</label>
+            <input type="text" id="track-id" placeholder="e.g. APP20260506123456" autocomplete="off" />
+          </div>
+          
+          <div class="or-divider">OR</div>
+          
+          <div class="field-group">
+            <label for="track-phone">Mobile Number</label>
+            <input type="tel" id="track-phone" placeholder="Enter 10-digit registered mobile" autocomplete="off" />
+          </div>
+
+          <div id="track-error" class="form-error" style="margin-top: 12px;"></div>
+
+          <button type="submit" class="btn-submit" style="margin-top: 20px;">
+            Track Status
+          </button>
+        </form>
+
+        <!-- Result Container -->
+        <div id="track-result" style="display: none;">
+          <!-- Data injected via JS -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="track.js"></script>
+  <script src="translations.js"></script>
+</body>
+</html>
