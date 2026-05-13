@@ -1,4 +1,4 @@
-const User = require('../models/User');
+const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose'); // Added for isValidObjectId check if needed for email/mobile
@@ -98,7 +98,7 @@ exports.login = async (req, res) => {
     const query = isEmail ? { email } : { mobile: email }; // Assuming 'mobile' field exists in User model if not email
     
     // For now, sticking to 'email' as per existing User model and frontend payload
-    const user = await User.findOne({ email }).select('+password'); // Select password explicitly for comparison
+    const user = await User.findOne(query).select('+password'); // Select password explicitly for comparison
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const validPassword = await bcrypt.compare(password, user.password);

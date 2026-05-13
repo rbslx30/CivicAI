@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getMe, sendOtp, verifyOtp } = require('../controllers/authController');
+const { register, login, getMe, sendOtp, verifyOtp } = require('./authController');
 // Assuming you might have authMiddleware for protected routes later
 // const { protect } = require('../middleware/authMiddleware');
 

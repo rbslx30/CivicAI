@@ -59,7 +59,7 @@ app.use((req, res, next) => {
 
 // Routes relative to backend/ directory
 // Ensure authRoutes is correctly linked
-const authRouter = require('./routes/authRoutes'); // Load the router module
+const authRouter = require('./authRoutes'); // Load the router module
 if (!authRouter) {
     console.error("❌ authRoutes module failed to load or returned null/undefined. Check path and export.");
 }
