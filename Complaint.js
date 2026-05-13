@@ -42,9 +42,9 @@ const complaintSchema = new mongoose.Schema({
     routingStatus: String,
     recommendedAuthority: String,
     reasoning: {
-      category: String,
-      priority: String,
-      routing: String
+      category: { type: String, default: 'No specific category reasoning.' },
+      priority: { type: String, default: 'No specific priority reasoning.' },
+      routing: { type: String, default: 'No specific routing reasoning.' }
     }
   },
   

@@ -30,9 +30,9 @@ const runAIAnalysis = async (text) => {
       department: assignedDepartment,
       sentiment: 'Neutral',
       confidenceScore: Math.floor(Math.random() * (99 - 85 + 1)) + 85, // Generates score between 85-99%
-      frustrationLevel: priority === 'Urgent' || priority === 'Critical' ? 5 : 2,
+      frustrationLevel: priority === 'Urgent' || priority === 'Critical' ? 5 : (priority === 'High' ? 4 : 2),
       fraudScore: 5,
-      resolutionEstimate: priority === 'Urgent' || priority === 'Critical' ? '24 Hours' : '3-5 Days',
+      resolutionEstimate: priority === 'Critical' ? 'Immediate' : (priority === 'Urgent' ? '24 Hours' : '3-5 Days'),
       reasoning: {
         category: `Matched ${category} via NLP engine.`,
         priority: `Priority set to ${priority} based on content urgency.`,
@@ -44,8 +44,14 @@ const runAIAnalysis = async (text) => {
     
     // Graceful fallback to prevent grievance drop during API timeouts
     return {
-      detectedLanguage: 'Auto', translatedText: text, category: 'General', priority: 'Medium',
-      department: 'General Administration', confidenceScore: 80, reasoning: { routing: "Fallback route." }
+      detectedLanguage: 'Auto',
+      translatedText: text,
+      category: 'Other / Miscellaneous',
+      priority: 'Medium',
+      department: 'General Administration',
+      confidenceScore: 80,
+      frustrationLevel: 2,
+      reasoning: { category: "AI analysis failed. Defaulted to General.", priority: "AI analysis failed. Defaulted to Medium.", routing: "Fallback route to General Administration." }
     };
   }
 };
