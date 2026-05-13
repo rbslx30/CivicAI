@@ -1,5 +1,18 @@
 const Complaint = require('../models/Complaint');
 
+// Helper to mask personal data
+const maskName = (name) => {
+  if (!name) return "Unknown";
+  const parts = name.split(' ');
+  if (parts.length === 1) return name.charAt(0) + "***";
+  return parts[0].charAt(0) + "*** " + parts[parts.length - 1];
+};
+
+const maskPhone = (phone) => {
+  if (!phone || phone.length < 10) return phone;
+  return phone.substring(0, 2) + "******" + phone.substring(8);
+};
+
 exports.getAllComplaints = async (req, res) => {
   try {
     const { category, priority, district, department, status, search, page = 1, limit = 20 } = req.query;
@@ -11,6 +24,11 @@ exports.getAllComplaints = async (req, res) => {
     if (department) query.assignedDepartment = department;
     if (status) query.status = status;
     
+    // RBAC: Force department filter for department admins
+    if (req.user.role === 'department_admin') {
+      query.assignedDepartment = req.user.department;
+    }
+
     if (search) {
       query.$or = [
         { applicationId: { $regex: search, $options: 'i' } },
@@ -21,10 +39,21 @@ exports.getAllComplaints = async (req, res) => {
     }
 
     const total = await Complaint.countDocuments(query);
-    const complaints = await Complaint.find(query)
+    let complaints = await Complaint.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(Number(limit));
+      .limit(Number(limit))
+      .lean();
+
+    // Data Privacy: Mask PII if the user is a department_admin
+    if (req.user.role === 'department_admin') {
+      complaints = complaints.map(c => {
+        c.name = maskName(c.name);
+        c.mobile = maskPhone(c.mobile);
+        c.email = c.email ? "***@***.com" : null;
+        return c;
+      });
+    }
 
     res.status(200).json({ success: true, total, page, limit, data: complaints });
   } catch (error) {
@@ -34,7 +63,13 @@ exports.getAllComplaints = async (req, res) => {
 
 exports.getDashboardStats = async (req, res) => {
   try {
+    // Filter stats matching department for department_admin
+    const matchStage = req.user.role === 'department_admin' 
+      ? { $match: { assignedDepartment: req.user.department } } 
+      : { $match: {} };
+
     const stats = await Complaint.aggregate([
+      matchStage,
       {
         $facet: {
           counts: [

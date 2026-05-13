@@ -1,27 +1,36 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const User = require('../models/User');
 
-// @desc    Admin Login
+// @desc    Secure Admin Login
 // @route   POST /api/admin/login
 // @access  Public
-const adminLogin = (req, res) => {
-  const { username, password } = req.body;
+const adminLogin = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+    const loginId = email || username; // Support both
 
-  // Verify against secure Environment Variables
-  const adminUser = process.env.ADMIN_USER || 'admin';
-  const adminPass = process.env.ADMIN_PASS || 'admin123';
+    const user = await User.findOne({ email: loginId });
+    if (!user || (user.role !== 'super_admin' && user.role !== 'department_admin')) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials or unauthorized access.' });
+    }
 
-  if (username === adminUser && password === adminPass) {
-    console.log(`[Auth] ✓ Admin login successful for user: ${username}`);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    }
+
+    console.log(`[Auth] ✓ Admin login successful: ${user.email} Role: ${user.role}`);
     const token = jwt.sign(
-      { role: 'admin', username }, 
+      { id: user._id, role: user.role, department: user.department },
       process.env.JWT_SECRET || 'hackathon_secret', 
       { expiresIn: '1d' }
     );
-    return res.status(200).json({ success: true, token });
+    return res.status(200).json({ success: true, token, role: user.role, department: user.department });
+  } catch (error) {
+    console.error(`[Auth Error] ${error.message}`);
+    return res.status(500).json({ success: false, message: 'Server error during authentication.' });
   }
-
-  console.warn(`[Auth] ⚠ Failed admin login attempt for user: ${username}`);
-  return res.status(401).json({ success: false, message: 'Invalid credentials' });
 };
 
 module.exports = { adminLogin };

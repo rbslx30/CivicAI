@@ -18,11 +18,24 @@ const verifyToken = async (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && (req.user.role === 'super_admin' || req.user.role === 'department_admin')) {
     next();
   } else {
-    res.status(403).json({ success: false, message: 'Access Denied: Admin privileges required' });
+    res.status(403).json({ success: false, message: 'Access Denied: Admin privileges required.' });
   }
 };
 
-module.exports = { verifyToken, isAdmin };
+// Helper middleware for specific roles
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ 
+        success: false, 
+        message: `Access Denied: You do not have the required role (${roles.join(', ')}).` 
+      });
+    }
+    next();
+  };
+};
+
+module.exports = { verifyToken, isAdmin, authorizeRoles };
