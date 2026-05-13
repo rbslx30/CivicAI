@@ -63,7 +63,8 @@ const authRouter = require('./routes/authRoutes'); // Load the router module
 if (!authRouter) {
     console.error("❌ authRoutes module failed to load or returned null/undefined. Check path and export.");
 }
-app.use('/api/auth', authRouter); // Mount the loaded router
+app.use('/api/auth', authRouter); // Mount the loaded router 
+console.log("✅ Auth routes loaded at /api/auth");
 app.use('/api/complaints', require('./routes/complaintRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
@@ -115,6 +116,7 @@ const startServer = async () => {
         const PORT = process.env.PORT || 5000;
         app.listen(PORT, () => {
             console.log(`✔ Server running on port ${PORT}`);
+            console.log(`✔ Environment: ${process.env.NODE_ENV || 'development'}`);
         });
     } catch (err) {
         console.error("❌ MongoDB Connection Failed:", err.message);

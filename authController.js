@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose'); // Added for isValidObjectId check if needed for email/mobile
 
 exports.register = async (req, res) => {
+  console.log("Signup route hit");
   try {
     const { name, email, password } = req.body;
     const existingUser = await User.findOne({ email });
@@ -19,6 +20,7 @@ exports.register = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+  console.log("Login route hit");
   try {
     const { email, password } = req.body;
     
