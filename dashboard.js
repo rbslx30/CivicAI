@@ -342,6 +342,12 @@
             <option value="Health & Family Welfare Department">Health</option>
             <option value="Municipal Corporation (Sanitation)">Sanitation</option>
             <option value="Home Affairs (Police)">Police</option>
+            <option value="Revenue Department">Revenue</option>
+            <option value="Transport Department">Transport</option>
+            <option value="Education Department">Education</option>
+            <option value="Department of Environment & Forests">Environment & Forests</option>
+            <option value="Social Welfare Department">Social Welfare</option>
+            <option value="Urban Development Department">Urban Development</option>
         </select>
 
         <label style="display:block; margin-bottom: 4px; color: var(--text-secondary); font-size: 11px;">Custom Status Change:</label>
