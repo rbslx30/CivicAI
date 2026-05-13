@@ -193,13 +193,48 @@ const locationOutput = document.getElementById('selected-location');
     copilotPanel.style.display = copilotPanel.style.display === 'flex' ? 'none' : 'flex';
   });
 
+  document.getElementById('close-copilot')?.addEventListener('click', () => {
+    if(copilotPanel) copilotPanel.style.display = 'none';
+  });
+
+  const categoriesMenuHTML = `
+    Welcome to CivicAI 👋<br/>
+    Please select what issue you want to report:<br/>
+    <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+      <button onclick="window.selectCopilotCategory('🛣️ Road Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🛣️ Road / Pothole / Broken Street</button>
+      <button onclick="window.selectCopilotCategory('💡 Electricity Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">💡 Electricity / Street Light Issue</button>
+      <button onclick="window.selectCopilotCategory('💧 Water Problem')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">💧 Water Supply / Leakage / Shortage</button>
+      <button onclick="window.selectCopilotCategory('🗑️ Garbage Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🗑️ Garbage / Cleaning Issue</button>
+      <button onclick="window.selectCopilotCategory('🚧 Construction Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🚧 Construction / Illegal Encroachment</button>
+      <button onclick="window.selectCopilotCategory('🚓 Safety Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🚓 Police / Safety Issue</button>
+      <button onclick="window.selectCopilotCategory('📄 Service Delay')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">📄 Certificate / Government Service Delay</button>
+      <button onclick="window.selectCopilotCategory('🌳 Environment Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🌳 Public Park / Environment Issue</button>
+      <button onclick="window.selectCopilotCategory('❓ Other Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">❓ Other Issue</button>
+    </div>
+  `;
+
+  window.selectCopilotCategory = function(category) {
+    chatArea.innerHTML += `<div class="chat-msg user-msg">${category}</div>`;
+    setTimeout(() => {
+      chatArea.innerHTML += `<div class="chat-msg ai-msg">Got it ${category}<br/>Please tell me:<br/>- Exact location?<br/>- What is the problem?<br/>- Since when is it happening?</div>`;
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }, 600);
+  };
+
+  const vagueInputs = ['hi', 'hello', 'help', 'hey', 'start'];
+
   chatInput?.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && chatInput.value.trim()) {
       const val = chatInput.value.trim();
+      const lowerVal = val.toLowerCase();
       chatArea.innerHTML += `<div class="chat-msg user-msg">${val}</div>`;
       chatInput.value = '';
       setTimeout(() => {
-        chatArea.innerHTML += `<div class="chat-msg ai-msg">I understand your concern about "${val}". Would you like me to draft a complaint for you?</div>`;
+        if (vagueInputs.includes(lowerVal)) {
+          chatArea.innerHTML += `<div class="chat-msg ai-msg">${categoriesMenuHTML}</div>`;
+        } else {
+          chatArea.innerHTML += `<div class="chat-msg ai-msg">Got it.<br/>Please tell me:<br/>- Exact location?<br/>- What is the problem?<br/>- Since when is it happening?</div>`;
+        }
         chatArea.scrollTop = chatArea.scrollHeight;
       }, 600);
     }

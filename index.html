@@ -38,7 +38,23 @@
   </div>
   <div class="copilot-panel" id="copilot-panel">
     <div class="copilot-header"><span>Governance Copilot</span><button id="close-copilot" style="background:none; border:none; color:#fff; cursor:pointer;">✕</button></div>
-    <div class="chat-area" id="chat-area"><div class="chat-msg ai-msg">Namaste! I am your CivicAI assistant. How can I help you improve our district today?</div></div>
+    <div class="chat-area" id="chat-area">
+      <div class="chat-msg ai-msg">
+        Welcome to CivicAI 👋<br/>
+        Please select what issue you want to report:
+        <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+          <button onclick="window.selectCopilotCategory('🛣️ Road Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🛣️ Road / Pothole / Broken Street</button>
+          <button onclick="window.selectCopilotCategory('💡 Electricity Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">💡 Electricity / Street Light Issue</button>
+          <button onclick="window.selectCopilotCategory('💧 Water Problem')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">💧 Water Supply / Leakage / Shortage</button>
+          <button onclick="window.selectCopilotCategory('🗑️ Garbage Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🗑️ Garbage / Cleaning Issue</button>
+          <button onclick="window.selectCopilotCategory('🚧 Construction Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🚧 Construction / Illegal Encroachment</button>
+          <button onclick="window.selectCopilotCategory('🚓 Safety Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🚓 Police / Safety Issue</button>
+          <button onclick="window.selectCopilotCategory('📄 Service Delay')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">📄 Certificate / Government Service Delay</button>
+          <button onclick="window.selectCopilotCategory('🌳 Environment Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">🌳 Public Park / Environment Issue</button>
+          <button onclick="window.selectCopilotCategory('❓ Other Issue')" style="text-align:left; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px;">❓ Other Issue</button>
+        </div>
+      </div>
+    </div>
     <div style="padding:10px; border-top:1px solid rgba(255,255,255,0.1);"><input type="text" id="chat-input" placeholder="Type naturally..." style="width:100%; background:transparent; border:none; color:#fff; outline:none;" /></div>
   </div>
 
