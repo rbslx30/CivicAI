@@ -24,7 +24,7 @@ exports.createComplaint = async (req, res) => {
   try {
     const aiResult = await runAIAnalysis(description);
 
-    const newComplaint = new Complaint({
+      const savedComplaint = await Complaint.create({
       applicationId: generateApplicationId(),
       name: fullName,
       mobile,
@@ -44,7 +44,7 @@ exports.createComplaint = async (req, res) => {
       timelineLogs: [{ status: 'Submitted', remarks: 'Grievance received and logged by the system.' }]
     });
 
-    const savedComplaint = await newComplaint.save();
+      console.log(`✅ [DB WRITE SUCCESS] Complaint saved securely with ID: ${savedComplaint.applicationId}`);
 
     res.status(201).json({
       success: true,

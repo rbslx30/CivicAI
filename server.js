@@ -88,11 +88,12 @@ const startServer = async () => {
         console.log("⏳ Initializing MongoDB Connection...");
         
         await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 15000, 
+            serverSelectionTimeoutMS: 5000, 
+            socketTimeoutMS: 45000,
             maxPoolSize: 10,
-            family: 4 
         });
-        console.log("✔ MongoDB Connected");
+        console.log(`✔ MongoDB Connected to Host: ${mongoose.connection.host}`);
+        console.log(`✔ Active Database: ${mongoose.connection.name}`);
 
         mongoose.connection.on('error', err => console.error('❌ MongoDB runtime error:', err));
         mongoose.connection.on('disconnected', () => console.warn('⚠️ MongoDB disconnected.'));

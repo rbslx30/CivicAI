@@ -96,6 +96,8 @@ exports.getDashboardStats = async (req, res) => {
 
     const result = stats[0];
     const counts = result.counts[0] || { total: 0, pending: 0, review: 0, resolved: 0, urgent: 0 };
+    
+    console.log(`📊 [DASHBOARD STATS FETCHED] Total: ${counts.total} | Pending: ${counts.pending} | Resolved: ${counts.resolved}`);
 
     res.status(200).json({
       success: true,
