@@ -2,6 +2,19 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose'); // Added for isValidObjectId check if needed for email/mobile
+const nodemailer = require('nodemailer');
+
+// In-memory store for OTPs. 
+// NOTE: For production scalability, store this in MongoDB (create an OTP model) or Redis.
+const otpStore = new Map();
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // Use your preferred email service
+  auth: {
+    user: process.env.EMAIL_USER, // Add to .env
+    pass: process.env.EMAIL_PASS  // Add to .env (Use App Passwords for Gmail)
+  }
+});
 
 exports.register = async (req, res) => {
   console.log("Signup route hit");
@@ -14,6 +27,61 @@ exports.register = async (req, res) => {
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
     res.status(201).json({ success: true, message: 'User registered successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.sendOtp = async (req, res) => {
+  console.log("Send OTP route hit");
+  try {
+    const { email } = req.body;
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ success: false, message: 'Valid email is required' });
+    }
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // Expires in 10 minutes
+
+    // Store OTP
+    otpStore.set(email, { otp, expiresAt });
+
+    // Send Email
+    await transporter.sendMail({
+      from: `"CivicAI Auth" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Your CivicAI Login OTP',
+      html: `<p>Your One-Time Password (OTP) is: <strong>${otp}</strong></p><p>This code will expire in 10 minutes. Do not share this with anyone.</p>`
+    });
+
+    res.status(200).json({ success: true, message: 'OTP sent successfully to your email' });
+  } catch (error) {
+    console.error("OTP Send Error:", error);
+    res.status(500).json({ success: false, message: 'Failed to send OTP email. Please check server configuration.' });
+  }
+};
+
+exports.verifyOtp = async (req, res) => {
+  console.log("Verify OTP route hit");
+  try {
+    const { email, otp } = req.body;
+    const storedData = otpStore.get(email);
+
+    if (!storedData) return res.status(400).json({ success: false, message: 'OTP not requested or has expired' });
+    if (Date.now() > storedData.expiresAt) {
+      otpStore.delete(email);
+      return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one.' });
+    }
+    if (storedData.otp !== otp) return res.status(400).json({ success: false, message: 'Invalid OTP code' });
+
+    // OTP is valid. Remove it from store to prevent reuse.
+    otpStore.delete(email);
+
+    // Here you can either return a verification success for a multi-step signup, 
+    // or if this is for Passwordless Login, find the user and return a JWT.
+    
+    res.status(200).json({ success: true, message: 'OTP verified successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
