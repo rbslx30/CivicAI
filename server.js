@@ -7,8 +7,8 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const compression = require('compression');
 
-// Load env
-dotenv.config();
+// Load env (Looking at the root directory where package.json sits)
+dotenv.config({ path: '../.env' });
 
 // Check required env
 if (!process.env.MONGO_URI) {
@@ -18,14 +18,14 @@ if (!process.env.MONGO_URI) {
 
 // Initialize app
 const app = express();
-app.disable('x-powered-by'); // Security: Hide Express
+app.disable('x-powered-by'); 
 
 // Security Middleware
-app.use(helmet()); // Sets various HTTP headers for security
-app.use(compression()); // Compress all responses
-app.use(mongoSanitize()); // Prevents NoSQL injection
+app.use(helmet()); 
+app.use(compression()); 
+app.use(mongoSanitize()); 
 
-// Rate Limiting: Max 20 requests per 15 minutes per IP for grievance filing
+// Rate Limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 100,
@@ -33,9 +33,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// SaaS Tenant & RBAC Middleware (Placeholder)
 app.use((req, res, next) => {
-    // In production, these are extracted from JWT/API Key
     req.tenantId = req.headers['x-tenant-id'] || 'IN-MP-BHO';
     req.userRole = 'Admin'; 
     next();
@@ -56,13 +54,14 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes
-app.use('/api/test', require('./testRoutes'));
-app.use('/api/auth', require('./authRoutes'));
-app.use('/api/complaints', require('./complaintRoutes'));
+// Routes relative to backend/ directory
+app.use('/api/test', require('./routes/testRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/complaints', require('./routes/complaintRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
-const { verifyToken, isAdmin } = require('./authMiddleware');
-app.use('/api/dashboard', verifyToken, isAdmin, require('./dashboardRoutes'));
+const { verifyToken, isAdmin } = require('./middleware/authMiddleware');
+app.use('/api/dashboard', verifyToken, isAdmin, require('./routes/dashboardRoutes'));
 
 // Production Health Check
 app.get('/api/health', (req, res) => {
@@ -75,46 +74,31 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// 404 handler
 app.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: "API Endpoint Not Found"
-    });
+    res.status(404).json({ success: false, message: "API Endpoint Not Found" });
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
     console.error("❌ Server Error:", err.message);
-    res.status(500).json({
-        success: false,
-        message: err.message || "Internal Server Error"
-    });
+    res.status(500).json({ success: false, message: err.message || "Internal Server Error" });
 });
 
-/**
- * Core Server Startup Sequence
- */
 const startServer = async () => {
     try {
         console.log("⏳ Initializing MongoDB Connection...");
         
-        // 1. Connect to Database (using options for stability)
         await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 15000, // Increased timeout for unstable hackathon Wi-Fi
+            serverSelectionTimeoutMS: 15000, 
             maxPoolSize: 10,
-            family: 4 // Forces IPv4 to bypass Node.js DNS resolution issues
+            family: 4 
         });
         console.log("✔ MongoDB Connected");
 
-        // 2. Handle Runtime DB Events
         mongoose.connection.on('error', err => console.error('❌ MongoDB runtime error:', err));
         mongoose.connection.on('disconnected', () => console.warn('⚠️ MongoDB disconnected.'));
 
-        // 3. System Provisioning (Admin Seed)
         await provisionAdmin();
 
-        // 4. Start Listening
         const PORT = process.env.PORT || 5000;
         app.listen(PORT, () => {
             console.log(`✔ Server running on port ${PORT}`);
@@ -127,7 +111,7 @@ const startServer = async () => {
 
 const provisionAdmin = async () => {
     try {
-        const User = require('./User');
+        const User = require('./models/User');
         const bcrypt = require('bcryptjs');
         const adminEmail = 'admin@civicai.ai';
         const adminExists = await User.findOne({ email: adminEmail });
@@ -146,11 +130,5 @@ const provisionAdmin = async () => {
 
 startServer();
 
-// Safety handlers
-process.on('uncaughtException', (err) => {
-    console.error("❌ Uncaught Exception:", err.message);
-});
-
-process.on('unhandledRejection', (reason) => {
-    console.error("❌ Unhandled Rejection:", reason);
-});
+process.on('uncaughtException', (err) => console.error("❌ Uncaught Exception:", err.message));
+process.on('unhandledRejection', (reason) => console.error("❌ Unhandled Rejection:", reason));

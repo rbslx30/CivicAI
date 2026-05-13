@@ -1,19 +1,12 @@
-const Complaint = require('./Complaint'); // Assuming the model is in ./Complaint.js
-const { generateApplicationId } = require('./idGenerator');
-const { runAIAnalysis } = require('./aiClassifier'); 
+const Complaint = require('../models/Complaint');
+const { generateApplicationId } = require('../utils/idGenerator');
+const { runAIAnalysis } = require('../services/aiClassifier');
 
-/**
- * @desc    Create a new complaint
- * @route   POST /api/complaints
- * @access  Public
- */
 exports.createComplaint = async (req, res) => {
-  // Log the incoming request for debugging
   console.log("Incoming complaint payload body:", req.body);
 
   const { fullName, mobile, description, state, district, category, language, email, evidence } = req.body;
 
-  // 1. Backend Validation
   if (!fullName || !mobile || !description || !state || !district || description.trim().length === 0) {
     return res.status(400).json({
       success: false,
@@ -21,7 +14,6 @@ exports.createComplaint = async (req, res) => {
     });
   }
 
-  // Increase minimum length for better AI classification accuracy
   if (description.trim().length < 15) {
     return res.status(400).json({
       success: false,
@@ -30,10 +22,8 @@ exports.createComplaint = async (req, res) => {
   }
 
   try {
-    // 2. Run AI Analysis
     const aiResult = await runAIAnalysis(description);
 
-    // 3. Create new complaint object for MongoDB
     const newComplaint = new Complaint({
       applicationId: generateApplicationId(),
       name: fullName,
@@ -42,8 +32,7 @@ exports.createComplaint = async (req, res) => {
       state,
       district,
       originalComplaint: description,
-      evidence, // This will store the Base64 string
-      // Fields populated by AI
+      evidence,
       category: aiResult.category,
       priority: aiResult.priority,
       assignedDepartment: aiResult.department,
@@ -51,14 +40,12 @@ exports.createComplaint = async (req, res) => {
       translatedComplaint: aiResult.translatedText,
       confidenceScore: aiResult.confidenceScore,
       aiAnalysis: aiResult,
-      // Default status
       status: 'Submitted',
       timelineLogs: [{ status: 'Submitted', remarks: 'Grievance received and logged by the system.' }]
     });
 
     const savedComplaint = await newComplaint.save();
 
-    // 4. Send success response with data expected by the frontend
     res.status(201).json({
       success: true,
       message: 'Complaint submitted successfully.',
@@ -67,18 +54,12 @@ exports.createComplaint = async (req, res) => {
       department: aiResult.department,
       data: savedComplaint
     });
-
   } catch (error) {
     console.error("Error in createComplaint controller:", error);
     res.status(500).json({ success: false, message: "An internal server error occurred while creating the complaint." });
   }
 };
 
-/**
- * @desc    Track a complaint by ID or Phone
- * @route   GET /api/complaints/track
- * @access  Public
- */
 exports.trackComplaint = async (req, res) => {
   const { id, phone } = req.query;
 

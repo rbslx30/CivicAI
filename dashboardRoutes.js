@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllComplaints, getDashboardStats, updateComplaintStatus } = require('./dashboardController');
+const { getAllComplaints, getDashboardStats, updateComplaintStatus } = require('../controllers/dashboardController');
 
 // Route: GET /api/dashboard/complaints (Middleware handled in server.js)
 router.get('/complaints', getAllComplaints);

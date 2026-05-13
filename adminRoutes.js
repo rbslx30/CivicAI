@@ -1,15 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const adminController = require('../controllers/adminController');
 
-// Basic hardcoded login for hackathon demo
-router.post('/login', (req, res) => {
-  const { username, password } = req.body;
-  
-  if (username === 'admin' && password === 'admin123') {
-    res.json({ success: true, token: 'demo-admin-token-12345' });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid credentials' });
-  }
-});
+router.post('/login', adminController.adminLogin);
 
 module.exports = router;

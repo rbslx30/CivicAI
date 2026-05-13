@@ -1,10 +1,3 @@
-// Generate unique ID format: GRV-2026-8F4K29
-const generateApplicationId = () => {
-  const year = new Date().getFullYear();
-  const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `GRV-${year}-${randomStr}`;
-};
-
 // Keyword-based AI Classification Logic
 const classifyComplaint = (text) => {
   if (!text) return { category: 'General', priority: 'Low', assignedDepartment: 'General Administration' };
@@ -15,7 +8,6 @@ const classifyComplaint = (text) => {
   let assignedDepartment = 'General Administration';
   let priority = 'Low';
 
-  // 1. Department & Category Routing
   const routingEngine = {
     'Electricity': {
       keywords: ['power', 'electricity', 'blackout', 'बिजली', 'current', 'wire', 'shock', 'transformer'],
@@ -43,20 +35,10 @@ const classifyComplaint = (text) => {
     }
   }
 
-  // 2. Priority Detection
-  const urgentWords = ['accident', 'emergency', 'fire', 'hospital', 'danger', 'death', 'murder', 'suicide', 'fatal', 'blast', 'blood'];
-  const highWords = ['bribe', 'corrupt', 'threat', 'harassment', 'leak', 'police', 'stolen', 'robbery', 'assault'];
-  const mediumWords = ['delay', 'pending', 'query', 'request', 'feedback', 'noise'];
-
-  if (urgentWords.some(kw => lowerText.includes(kw))) {
-    priority = 'Urgent';
-  } else if (highWords.some(kw => lowerText.includes(kw))) {
-    priority = 'High';
-  } else if (mediumWords.some(kw => lowerText.includes(kw))) {
-    priority = 'Medium';
-  }
+  if (['accident', 'emergency', 'fire', 'danger', 'death'].some(kw => lowerText.includes(kw))) priority = 'Urgent';
+  else if (['bribe', 'corrupt', 'threat', 'leak', 'police'].some(kw => lowerText.includes(kw))) priority = 'High';
+  else if (['delay', 'pending', 'query', 'noise'].some(kw => lowerText.includes(kw))) priority = 'Medium';
 
   return { category, priority, assignedDepartment };
 };
-
-module.exports = { generateApplicationId, classifyComplaint };
+module.exports = { classifyComplaint };

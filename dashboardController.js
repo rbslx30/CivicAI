@@ -1,4 +1,4 @@
-const Complaint = require('./Complaint');
+const Complaint = require('../models/Complaint');
 
 exports.getAllComplaints = async (req, res) => {
   try {

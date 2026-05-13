@@ -7,7 +7,7 @@
 (function() {
   'use strict';
 
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'https://civicai-1gu2.onrender.com/api';
 
   const trackForm = document.getElementById('track-form');
   const trackIdInput = document.getElementById('track-id');

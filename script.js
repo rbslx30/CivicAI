@@ -78,7 +78,7 @@ const locationOutput = document.getElementById('selected-location');
   const btnText    = submitBtn.querySelector('.btn-text');
   const btnLoader  = submitBtn.querySelector('.btn-loader');
 
-  const API_BASE_URL = 'http://localhost:5000/api';
+  const API_BASE_URL = 'https://civicai-1gu2.onrender.com/api';
 
   /* ── State & District Dynamic Loading ── */
   let locationData = {};

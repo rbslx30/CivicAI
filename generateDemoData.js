@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const Complaint = require('./Complaint');
+const Complaint = require('./models/Complaint'); // Updated path
 const { runAIAnalysis } = require('./services/aiClassifier');
-const { generateApplicationId } = require('./idGenerator');
+const { generateApplicationId } = require('./utils/idGenerator'); // Updated path
 
 dotenv.config();
 
