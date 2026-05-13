@@ -34,7 +34,11 @@ exports.login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const payload = { id: user._id, role: user.role };
+    if (user.role === 'department_admin' && user.department) {
+      payload.department = user.department;
+    }
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
     res.status(200).json({ success: true, message: 'Login successful', token, role: user.role, name: user.name });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

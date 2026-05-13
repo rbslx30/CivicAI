@@ -23,7 +23,10 @@ const adminLogin = async (req, res) => {
     console.log(`[Auth] ✓ Admin login successful: ${user.email} Role: ${user.role}`);
     const token = jwt.sign(
       { id: user._id, role: user.role, department: user.department },
-      process.env.JWT_SECRET, // Strictly use JWT_SECRET from environment variables
+      // Ensure department is only added if the user is a department_admin
+      { id: user._id, role: user.role, 
+        ...(user.role === 'department_admin' && user.department && { department: user.department }) 
+      },
       { expiresIn: '1d' }
     );
     return res.status(200).json({ success: true, token, role: user.role, department: user.department });

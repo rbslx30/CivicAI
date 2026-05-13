@@ -4,6 +4,7 @@ const complaintSchema = new mongoose.Schema({
   tenantId: { type: String, required: true, index: true, default: 'IN-MP-BHO' }, // Multi-tenant Identifier
   name: String,
   mobile: String,
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Link to the User who submitted the complaint
   email: String,
   category: String,
   description: String,
@@ -41,11 +42,7 @@ const complaintSchema = new mongoose.Schema({
     urgencyScore: Number,
     routingStatus: String,
     recommendedAuthority: String,
-    reasoning: {
-      category: { type: String, default: 'No specific category reasoning.' },
-      priority: { type: String, default: 'No specific priority reasoning.' },
-      routing: { type: String, default: 'No specific routing reasoning.' }
-    }
+    reason: { type: String, default: 'No specific AI reasoning provided.' } // Consolidated AI reason
   },
   
   internalNotes: [

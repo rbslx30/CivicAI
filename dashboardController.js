@@ -24,10 +24,10 @@ exports.getAllComplaints = async (req, res) => {
     if (department) query.assignedDepartment = department;
     if (status) query.status = status;
     
-    // RBAC: Force department filter for department admins
-    if (req.user.role === 'department_admin') {
-      query.assignedDepartment = req.user.department;
-    }
+    // RBAC: If enforceDepartmentAccess middleware has set assignedDepartment in query, use it.
+    // This ensures department admins only see their department's complaints.
+    // Super admins bypass enforceDepartmentAccess, so req.query.assignedDepartment won't be set by it.
+    if (req.query.assignedDepartment) query.assignedDepartment = req.query.assignedDepartment;
 
     if (search) {
       query.$or = [
@@ -45,7 +45,7 @@ exports.getAllComplaints = async (req, res) => {
       .limit(Number(limit))
       .lean();
 
-    // Data Privacy: Mask PII if the user is a department_admin
+    // Data Privacy: Mask PII if the user is a department_admin (or any role that shouldn't see full PII)
     if (req.user.role === 'department_admin') {
       complaints = complaints.map(c => {
         c.name = maskName(c.name);
@@ -64,9 +64,9 @@ exports.getAllComplaints = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
   try {
     // Filter stats matching department for department_admin
-    const matchStage = req.user.role === 'department_admin' 
-      ? { $match: { assignedDepartment: req.user.department } } 
-      : { $match: {} };
+    // Use req.query.assignedDepartment if set by enforceDepartmentAccess middleware
+    const matchQuery = req.query.assignedDepartment ? { assignedDepartment: req.query.assignedDepartment } : {};
+    const matchStage = { $match: matchQuery };
 
     const stats = await Complaint.aggregate([
       matchStage,
@@ -142,7 +142,12 @@ exports.updateComplaintStatus = async (req, res) => {
     const { id } = req.params;
     const { status, remarks, assignedDepartment } = req.body;
     
-    const complaint = await Complaint.findOne({ applicationId: id });
+    const query = { applicationId: id };
+    // Ensure department admins can only update complaints within their department
+    if (req.user.role === 'department_admin' && req.query.assignedDepartment) {
+      query.assignedDepartment = req.query.assignedDepartment;
+    }
+    const complaint = await Complaint.findOne(query);
     if (!complaint) return res.status(404).json({ success: false, message: "Complaint not found" });
 
     if (status) {

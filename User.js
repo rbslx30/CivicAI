@@ -21,9 +21,13 @@ const UserSchema = new mongoose.Schema({
     select: false, // Don't return password by default in queries
   },
   role: {
-    type: String,
-    enum: ['user', 'admin', 'super_admin', 'department_admin'], // Define possible roles
+    type: String, // 'admin' is now 'department_admin' or 'super_admin'
+    enum: ['user', 'department_admin', 'super_admin'], // Define possible roles
     default: 'user',
+  },
+  department: { // Only applicable for 'department_admin' role
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,

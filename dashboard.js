@@ -278,6 +278,7 @@
     document.getElementById('modal-title').textContent = `Manage: ${complaint.applicationId}`;
     modalBody.innerHTML = ` 
       <p><strong>Complainant:</strong> ${complaint.name} (${complaint.mobile})</p>
+      <p><strong>Assigned Officer:</strong> ${complaint.assignedOfficer || 'Unassigned'}</p>
       <p><strong>Location:</strong> ${complaint.district}, ${complaint.state}</p>
       <p><strong>Category:</strong> ${complaint.category} — Priority: <span style="text-transform: uppercase;">${complaint.priority}</span></p>
       <p><strong>Department:</strong> ${complaint.assignedDepartment}</p>
@@ -287,10 +288,12 @@
            <p style="margin-bottom: 8px; font-size: 12px; text-transform: uppercase; color: var(--violet-lt); font-weight: 600;">AI Analysis Report:</p>
            <span class="ai-badge" style="background: rgba(167, 139, 250, 0.2); font-size: 10px; border: 1px solid var(--violet-lt);">${complaint.confidenceScore || 94}% Confidence</span>
         </div>
-        <p style="margin-bottom: 4px; font-size: 11px; color: var(--text-muted);">Detected Language: <strong>${complaint.detectedLanguage || 'Auto'}</strong></p>
-        <p style="margin-bottom: 12px; color: #ccc; font-style: italic;">"${complaint.originalComplaint}"</p>
-        <p style="margin-bottom: 8px; font-size: 12px; text-transform: uppercase; color: var(--violet-lt); font-weight: 600;">AI Translated (English):</p>
-        <p style="margin:0; color: #fff;">${complaint.translatedComplaint || complaint.originalComplaint}</p>
+        <div style="margin-bottom: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+          <p style="margin-bottom: 4px; font-size: 11px; color: var(--text-muted);">Detected Language: <strong>${complaint.detectedLanguage || 'Auto'}</strong></p>
+          <p style="margin-bottom: 12px; color: #ccc; font-style: italic;">"${complaint.originalComplaint}"</p>
+          <p style="margin-bottom: 8px; font-size: 12px; text-transform: uppercase; color: var(--violet-lt); font-weight: 600;">AI Translated (English):</p>
+          <p style="margin:0; color: #fff;">${complaint.translatedComplaint || complaint.originalComplaint}</p>
+        </div>
       </div>
       
       <!-- SaaS Explainability & Collaboration -->
@@ -298,9 +301,10 @@
         <h4 style="font-size: 11px; color: var(--violet-lt); text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> AI Explainability
         </h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin: 0;"><strong>Category Logic:</strong> ${complaint.aiAnalysis?.reasoning?.category || 'Automatic detection'}</p>
-        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;"><strong>Priority Logic:</strong> ${complaint.aiAnalysis?.reasoning?.priority || 'Standard priority'}</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0;"><strong>AI Reasoning:</strong> ${complaint.aiAnalysis?.reason || 'No specific AI reasoning provided.'}</p>
         <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;"><strong>SLA:</strong> Resolve by ${complaint.resolutionEstimate || 'N/A'}</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;"><strong>Frustration Level:</strong> ${complaint.frustrationLevel || 'N/A'}</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;"><strong>Fraud Score:</strong> ${complaint.fraudScore || 'N/A'}</p>
       </div>
 
       <div class="internal-collab" style="margin-bottom: 12px;">
@@ -308,6 +312,8 @@
         <textarea id="officer-note" placeholder="Add internal observation..." style="width:100%; background: #0f0f1a; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color:#fff; padding:8px; font-size:13px;"></textarea>
         <button onclick="window.addNote('${complaint.applicationId}')" class="btn-action-small" style="margin-top: 5px; width: 100%;">Post Internal Note</button>
       </div>
+
+      ${getAIRoutingFlowHTML(complaint)}
 
       <div class="timeline-view" style="margin-top: 15px; border-left: 2px solid var(--violet); padding-left: 15px;">
         <h4 style="font-size: 12px; color: var(--violet-lt); margin-bottom: 10px;">Lifecycle Timeline</h4>
@@ -351,6 +357,102 @@
       </div>
     `;
     modalOverlay.classList.add('active');
+  };
+
+  // Helper function to generate AI Routing Flow HTML
+  function getAIRoutingFlowHTML(complaint) {
+    const stages = [
+      { id: 'user_input', name: 'User Input', icon: '👤', description: 'Citizen submitted complaint.' },
+      { id: 'ai_analysis', name: 'AI Analysis', icon: '🧠', description: 'AI processed text, detected language, and translated.' },
+      { id: 'department_assigned', name: 'Department Assigned', icon: '🏢', description: `Assigned to: ${complaint.assignedDepartment || 'N/A'}` },
+      { id: 'priority_detected', name: 'Priority Detected', icon: '🚨', description: `Priority: ${complaint.priority || 'N/A'}` },
+      { id: 'admin_allocated', name: 'Admin Allocated', icon: '🧑‍💻', description: `Assigned to: ${complaint.assignedOfficer || 'Unassigned'}` },
+      { id: 'status_tracking', name: 'Status Tracking', icon: '✅', description: `Current Status: ${complaint.status || 'N/A'}` },
+    ];
+
+    let currentStageIndex = 0;
+    switch (complaint.status) {
+      case 'Submitted':
+        currentStageIndex = 0; // User Input / AI Analysis are implicitly done
+        break;
+      case 'Accepted':
+      case 'Under Review':
+        currentStageIndex = 3; // Department assigned, priority detected, now under review by admin
+        break;
+      case 'In Progress':
+        currentStageIndex = 4; // Admin allocated, in progress
+        break;
+      case 'Resolved':
+      case 'Rejected':
+        currentStageIndex = 5; // Final status
+        break;
+      default:
+        currentStageIndex = 0;
+    }
+
+    const aiReason = complaint.aiAnalysis?.reason || 'No specific AI reasoning provided.';
+    const aiConfidence = complaint.confidenceScore || 0;
+
+    return `
+      <div class="ai-routing-flow-card" style="background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border-radius: 12px; padding: 20px; margin-top: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3);">
+        <h3 style="font-size: 16px; color: var(--violet-lt); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+          AI Routing Flow Visualization
+        </h3>
+        <div class="flow-stepper" style="display: flex; flex-direction: column; gap: 25px; position: relative; padding-left: 15px;">
+          ${stages.map((stage, index) => `
+            <div class="flow-step ${index <= currentStageIndex ? 'completed' : ''} ${index === currentStageIndex ? 'active' : ''}" style="display: flex; align-items: center; gap: 15px; position: relative;">
+              ${index < stages.length - 1 ? `<div class="flow-line" style="position: absolute; left: 10px; top: 25px; bottom: -25px; width: 2px; background: rgba(167, 139, 250, 0.2); ${index < currentStageIndex ? 'background: var(--green);' : ''}"></div>` : ''}
+              <div class="step-icon" style="width: 20px; height: 20px; border-radius: 50%; background: rgba(167, 139, 250, 0.1); display: flex; justify-content: center; align-items: center; font-size: 12px; flex-shrink: 0; border: 1px solid rgba(167, 139, 250, 0.3); ${index <= currentStageIndex ? 'background: var(--green); border-color: var(--green); color: #fff;' : ''}">
+                ${stage.icon}
+              </div>
+              <div class="step-content">
+                <div class="step-name" style="font-weight: 600; color: ${index <= currentStageIndex ? '#fff' : 'var(--text-muted)'}; font-size: 13px;">${stage.name}</div>
+                <div class="step-description" style="font-size: 11px; color: var(--text-secondary);">${stage.description}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="ai-explanation-panel" style="background: rgba(167, 139, 250, 0.08); border-left: 3px solid var(--violet); padding: 15px; border-radius: 8px; margin-top: 25px;">
+          <h4 style="font-size: 13px; color: var(--violet-lt); margin-bottom: 8px;">AI Decision Summary:</h4>
+          <p style="font-size: 12px; color: #ccc; margin-bottom: 5px;"><strong>Reasoning:</strong> ${aiReason}</p>
+          <p style="font-size: 12px; color: #ccc;"><strong>Confidence Score:</strong> ${aiConfidence}%</p>
+        </div>
+      </div>
+      <style>
+        .flow-step.completed .step-icon {
+          background: var(--green) !important;
+          border-color: var(--green) !important;
+          color: #fff !important;
+        }
+        .flow-step.completed .flow-line {
+          background: var(--green) !important;
+        }
+        .flow-step.active .step-icon {
+          box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.5);
+        }
+        .flow-step.active .step-name {
+          color: var(--violet-lt) !important;
+        }
+        .ai-routing-flow-card .flow-step:last-child .flow-line {
+          display: none; /* Hide line for the last step */
+        }
+      </style>
+    `;
+  }
+
+  // Add a placeholder for window.addNote as it's called in the modal but not defined here.
+  // In a full implementation, this would be a backend call to add an internal note.
+  window.addNote = async function(applicationId) {
+    const officerNote = document.getElementById('officer-note').value;
+    if (!officerNote.trim()) {
+      alert('Please enter a note to add.');
+      return;
+    }
+    // Simulate API call
+    showToast(`Note added for ${applicationId}: "${officerNote}"`, 'success');
+    document.getElementById('officer-note').value = ''; // Clear the textarea
+    // In a real app, you'd make an API call here and then refresh the modal content.
   };
 
   window.quickUpdate = function(id, status, remarks) {

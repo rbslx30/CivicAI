@@ -19,28 +19,28 @@ const runAIAnalysis = async (text) => {
     const translatedText = translateToEnglish ? await translateToEnglish(text) : text;
 
     // 3. Classification (Category, Department, Priority)
-    console.log("[AI] Running NLP Classification...");
-    const { category, priority, assignedDepartment } = classifyComplaint(translatedText);
+    console.log("[AI] Running Complaint Classification..."); // Log for classification start
+    const { department, priority, confidence, reason } = classifyComplaint(translatedText);
 
     return {
       detectedLanguage,
       translatedText,
-      category,
+      category: department, // The department is the primary category for routing, aligning with the schema
       priority,
-      department: assignedDepartment,
+      department: department,
       sentiment: 'Neutral',
-      confidenceScore: Math.floor(Math.random() * (99 - 85 + 1)) + 85, // Generates score between 85-99%
-      frustrationLevel: priority === 'Urgent' || priority === 'Critical' ? 5 : (priority === 'High' ? 4 : 2),
+      confidenceScore: confidence,
+      frustrationLevel: priority === 'Critical' ? 5 : (priority === 'High' ? 4 : (priority === 'Medium' ? 3 : 2)),
       fraudScore: 5,
-      resolutionEstimate: priority === 'Critical' ? 'Immediate' : (priority === 'Urgent' ? '24 Hours' : '3-5 Days'),
-      reasoning: {
-        category: `Matched ${category} via NLP engine.`,
-        priority: `Priority set to ${priority} based on content urgency.`,
-        routing: `Routed to ${assignedDepartment}.`
-      }
+      resolutionEstimate: priority === 'Critical' ? 'Immediate' : (priority === 'High' ? '24 Hours' : '3-5 Days'), // Dynamic resolution estimate
+      aiAnalysis: { // Store the detailed AI analysis object
+        detectedLanguage, translatedText, category: department, priority, department, sentiment: 'Neutral',
+        confidenceScore: confidence, urgencyScore: 0, routingStatus: 'Auto-routed', recommendedAuthority: department,
+        reason: reason // Consolidated reason string
+      } 
     };
   } catch (error) {
-    console.error("[AI] Pipeline Error:", error);
+    console.error("[AI] Pipeline Error:", error); // Log any errors during the AI pipeline
     
     // Graceful fallback to prevent grievance drop during API timeouts
     return {
@@ -49,9 +49,13 @@ const runAIAnalysis = async (text) => {
       category: 'Other / Miscellaneous',
       priority: 'Medium',
       department: 'General Administration',
-      confidenceScore: 80,
-      frustrationLevel: 2,
-      reasoning: { category: "AI analysis failed. Defaulted to General.", priority: "AI analysis failed. Defaulted to Medium.", routing: "Fallback route to General Administration." }
+      confidenceScore: 80, // Default confidence for fallback
+      frustrationLevel: 2, // Default frustration level for fallback
+      aiAnalysis: { // Fallback for aiAnalysis object
+        detectedLanguage: 'Auto', translatedText: text, category: 'Other / Miscellaneous', priority: 'Medium',
+        department: 'General Administration', confidenceScore: 80, urgencyScore: 0, routingStatus: 'Fallback',
+        recommendedAuthority: 'General Administration', reason: "AI analysis failed. Defaulted to General Administration with Medium priority."
+      }
     };
   }
 };

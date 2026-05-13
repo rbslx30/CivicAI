@@ -70,7 +70,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 // Import new authentication and authorization middlewares
 const verifyToken = require('./middleware/authMiddleware');
 const authorizeRoles = require('./middleware/roleMiddleware');
-app.use('/api/dashboard', verifyToken, authorizeRoles(['admin']), require('./routes/dashboardRoutes'));
+const enforceDepartmentAccess = require('./middleware/enforceDepartmentAccess'); // New middleware
 
 // Production Health Check
 app.get('/api/health', (req, res) => {
@@ -91,6 +91,9 @@ app.use((err, req, res, next) => {
     console.error("❌ Server Error:", err.message);
     res.status(500).json({ success: false, message: err.message || "Internal Server Error" });
 });
+
+// Dashboard routes (protected by auth and role/department access)
+app.use('/api/dashboard', verifyToken, authorizeRoles(['department_admin', 'super_admin']), require('./routes/dashboardRoutes'));
 
 const startServer = async () => {
     try {
@@ -124,12 +127,19 @@ const provisionAdmin = async () => {
         const User = require('./models/User'); // Ensure User model is imported here
         const bcrypt = require('bcryptjs');
         const adminEmail = 'admin@civicai.ai';
-        const adminExists = await User.findOne({ email: adminEmail });
+        const superAdminEmail = 'superadmin@civicai.ai';
+        const waterDeptAdminEmail = 'wateradmin@civicai.ai';
         
-        if (!adminExists) {
+        // Provision Super Admin
+        const superAdminExists = await User.findOne({ email: superAdminEmail });
+        if (!superAdminExists) {
             const hashedPassword = await bcrypt.hash('admin123', 10);
             await User.create({
-                name: 'Super Admin', email: adminEmail, password: hashedPassword, role: 'admin'
+                name: 'Super Admin', email: superAdminEmail, password: hashedPassword, role: 'super_admin'
+            });
+            console.log('✅ System: Super Admin provisioned.');
+            await User.create({
+                name: 'Water Dept Admin', email: waterDeptAdminEmail, password: hashedPassword, role: 'department_admin', department: 'Water Supply Department'
             });
             console.log('✅ System: Default Admin provisioned.');
         }

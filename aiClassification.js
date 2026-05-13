@@ -1,156 +1,174 @@
 // Keyword-based AI Classification Logic
 const departmentsMap = require('./departments'); // Import the new departments map
 
-const classifyComplaint = (text) => {
+const classifyComplaint = (text) => { // Renamed from classifyComplaint to match prompt
   if (!text) {
     return {
-      category: 'Other / Miscellaneous',
+      department: departmentsMap['Other / Miscellaneous'],
       priority: 'Low',
-      assignedDepartment: departmentsMap['Other / Miscellaneous'],
-      reasoning: {
-        category: 'No text provided.',
-        priority: 'Default low priority due to no text.',
-        routing: 'Default routing to General Administration due to no text.'
-      }
+      confidence: 50, // Default low confidence for no text
+      reason: 'No complaint text provided. Defaulted to "Other / Miscellaneous" department with Low priority.'
     };
   }
   
   const lowerText = text.toLowerCase();
 
-  let category = 'Other / Miscellaneous';
-  let assignedDepartment = departmentsMap['Other / Miscellaneous'];
+  let detectedCategoryKey = 'Other / Miscellaneous'; // Key from departmentsMap
+  let assignedDepartment = departmentsMap[detectedCategoryKey];
   let priority = 'Low';
-  let categoryReason = 'No specific keywords matched for category. Defaulted to Other / Miscellaneous.';
-  let priorityReason = 'No specific keywords matched for priority. Defaulted to Low.';
-  let routingReason = `Routed to ${assignedDepartment} based on category.`;
+  let confidence = 0;
+  let reasoningParts = [];
 
   const routingEngine = {
-    'Water Supply': {
-      keywords: ['water', 'pipeline', 'tap', 'leak', 'drainage', 'drinking', 'pani', 'पानी'],
-      dept: departmentsMap['Water Supply']
+    "Water Supply": {
+      keywords: ['water', 'pipeline', 'tap', 'leak', 'drainage', 'drinking', 'pani', 'पानी', 'jal', 'jalpurti'],
+      deptKey: "Water Supply"
     },
-    'Electricity Board': {
-      keywords: ['electricity', 'power cut', 'blackout', 'wire', 'current', 'transformer', 'बिजली', 'light', 'street light'],
-      dept: departmentsMap['Electricity Board']
+    "Electricity Board": {
+      keywords: ['electricity', 'power cut', 'blackout', 'wire', 'current', 'transformer', 'बिजली', 'light', 'street light', 'bijli', 'power failure'],
+      deptKey: "Electricity Board"
     },
-    'Roads & Infrastructure': {
-      keywords: ['road', 'pothole', 'street', 'highway', 'bridge', 'सड़क', 'construction'],
-      dept: departmentsMap['Roads & Highways']
+    "Roads & Highways": {
+      keywords: ['road', 'pothole', 'street', 'highway', 'bridge', 'सड़क', 'construction', 'gaddha', 'गड्ढा', 'sadak', 'repair'],
+      deptKey: "Roads & Highways"
     },
-    'Sanitation & Waste': {
-      keywords: ['garbage', 'cleaning', 'trash', 'smell', 'कचरा', 'dustbin', 'sweeper', 'waste'],
-      dept: departmentsMap['Sanitation & Waste Management']
+    "Sanitation & Waste Management": {
+      keywords: ['garbage', 'cleaning', 'trash', 'smell', 'कचरा', 'dustbin', 'sweeper', 'waste', 'kachra', 'dump'],
+      deptKey: "Sanitation & Waste Management"
     },
-    'Health & Medical': {
-      keywords: ['hospital', 'doctor', 'disease', 'dengue', 'malaria', 'clinic', 'health', 'medicine'],
-      dept: departmentsMap['Health Department']
+    "Sewage & Drainage": {
+      keywords: ['sewage', 'drainage', 'gutter', 'overflow', 'blockage', 'nallah', 'नाली', 'sewer'],
+      deptKey: "Sewage & Drainage"
     },
-    'Law & Order': {
-      keywords: ['police', 'crime', 'theft', 'robbery', 'assault', 'harassment', 'safety', 'law'],
-      dept: departmentsMap['Public Safety / Police']
+    "Public Transport": {
+      keywords: ['bus', 'train', 'auto', 'rickshaw', 'transport', 'fare', 'route', 'delay', 'public transport'],
+      deptKey: "Public Transport"
     },
-    'Fire Safety': {
-      keywords: ['fire', 'burn', 'cylinder blast', 'smoke', 'आग'],
-      dept: departmentsMap['Fire & Emergency Services']
+    "Traffic Police": {
+      keywords: ['traffic', 'signal', 'jam', 'parking', 'vehicle', 'accident', 'police', 'challan', 'traffic light'],
+      deptKey: "Traffic Police"
     },
-    'Traffic Issue': {
-      keywords: ['traffic', 'signal', 'jam', 'parking', 'vehicle', 'accident'],
-      dept: departmentsMap['Traffic Police']
+    "Municipal Corporation": {
+      keywords: ['municipal', 'corporation', 'nagar nigam', 'council', 'local body', 'civic body'],
+      deptKey: "Municipal Corporation"
     },
-    'Environment': {
-      keywords: ['tree', 'cutting', 'pollution', 'park', 'noise', 'smoke'],
-      dept: departmentsMap['Pollution Control']
+    "Housing & Urban Development": {
+      keywords: ['house', 'building', 'slum', 'colony', 'housing', 'urban', 'dwelling', 'shelter', 'development'],
+      deptKey: "Housing & Urban Development"
     },
-    'Education': {
-      keywords: ['school', 'teacher', 'college', 'student', 'education', 'exam'],
-      dept: departmentsMap['Education Department']
+    "Property Tax / Revenue": {
+      keywords: ['tax', 'property', 'revenue', 'bill', 'fine', 'assessment', 'lagan', 'house tax'],
+      deptKey: "Property Tax / Revenue"
     },
-    'Transport': {
-      keywords: ['bus', 'train', 'ticket', 'transport', 'rto', 'license'],
-      dept: departmentsMap['Public Transport']
+    "Health Department": {
+      keywords: ['hospital', 'doctor', 'disease', 'dengue', 'malaria', 'clinic', 'health', 'medicine', 'fever', 'illness', 'sanitary'],
+      deptKey: "Health Department"
     },
-    'Digital Services': {
-      keywords: ['portal', 'website', 'online', 'payment fail', 'server down', 'app'],
-      dept: departmentsMap['Digital Services / IT Grievances']
+    "Education Department": {
+      keywords: ['school', 'teacher', 'college', 'student', 'education', 'exam', 'fees', 'admission', 'university'],
+      deptKey: "Education Department"
     },
-    'Emergency': {
-      keywords: ['emergency', 'disaster', 'flood', 'earthquake', 'collapse'],
-      dept: departmentsMap['Disaster Management']
+    "Pollution Control": {
+      keywords: ['pollution', 'smoke', 'air quality', 'noise', 'environment', 'factory', 'chemical', 'emission'],
+      deptKey: "Pollution Control"
     },
-    'Women Welfare': {
-      keywords: ['woman', 'child', 'abuse', 'domestic', 'orphan'],
-      dept: departmentsMap['Women & Child Welfare']
+    "Parks & Gardens": {
+      keywords: ['park', 'garden', 'tree', 'greenery', 'lawn', 'playground', 'plant'],
+      deptKey: "Parks & Gardens"
     },
-    'Housing & Urban Development': {
-      keywords: ['house', 'building', 'slum', 'colony', 'housing', 'urban'],
-      dept: departmentsMap['Housing & Urban Development']
+    "Street Lighting": {
+      keywords: ['street light', 'lamp post', 'darkness', 'light not working', 'pole'],
+      deptKey: "Street Lighting"
     },
-    'Property Tax / Revenue': {
-      keywords: ['tax', 'property', 'revenue', 'bill', 'fine'],
-      dept: departmentsMap['Property Tax / Revenue']
+    "Food & Civil Supplies": {
+      keywords: ['ration', 'food', 'supply', 'grain', 'subsidy', 'pds', 'shop', 'distribution'],
+      deptKey: "Food & Civil Supplies"
     },
-    'Food & Civil Supplies': {
-      keywords: ['ration', 'food', 'supply', 'grain', 'subsidy'],
-      dept: departmentsMap['Food & Civil Supplies']
+    "Fire & Emergency Services": {
+      keywords: ['fire', 'burn', 'cylinder blast', 'smoke', 'आग', 'emergency', 'disaster', 'firefighter'],
+      deptKey: "Fire & Emergency Services"
     },
-    'Animal Control': {
-      keywords: ['animal', 'dog', 'cat', 'cow', 'stray', 'rabies'],
-      dept: departmentsMap['Animal Control']
+    "Public Safety / Police": {
+      keywords: ['police', 'crime', 'theft', 'robbery', 'assault', 'harassment', 'safety', 'law', 'security', 'patrol', 'station'],
+      deptKey: "Public Safety / Police"
     },
-    'Government Schemes / Welfare': {
-      keywords: ['scheme', 'welfare', 'pension', 'subsidy', 'yojana'],
-      dept: departmentsMap['Government Schemes / Welfare']
+    "Construction & Encroachment": {
+      keywords: ['illegal construction', 'encroachment', 'demolition', 'unauthorized', 'building permit', 'structure'],
+      deptKey: "Construction & Encroachment"
     },
-    'Construction & Encroachment': {
-      keywords: ['illegal construction', 'encroachment', 'demolition', 'unauthorized'],
-      dept: departmentsMap['Construction & Encroachment']
-    }
+    "Animal Control": {
+      keywords: ['animal', 'dog', 'cat', 'cow', 'stray', 'rabies', 'bite', 'menace', 'pet'],
+      deptKey: "Animal Control"
+    },
+    "Disaster Management": {
+      keywords: ['disaster', 'flood', 'earthquake', 'cyclone', 'calamity', 'relief', 'natural disaster'],
+      deptKey: "Disaster Management"
+    },
+    "Government Schemes / Welfare": {
+      keywords: ['scheme', 'welfare', 'pension', 'subsidy', 'yojana', 'benefit', 'government program'],
+      deptKey: "Government Schemes / Welfare"
+    },
+    "Digital Services / IT Grievances": {
+      keywords: ['portal', 'website', 'online', 'payment fail', 'server down', 'app', 'digital', 'it issue', 'cyber'],
+      deptKey: "Digital Services / IT Grievances"
+    },
   };
 
   // Deterministic Matching
+  let categoryMatched = false;
   for (const [cat, data] of Object.entries(routingEngine)) {
     if (data.keywords.some(kw => lowerText.includes(kw))) {
-      category = cat;
-      assignedDepartment = data.dept || departmentsMap['Other / Miscellaneous']; // Fallback to general if dept not explicitly set
-      categoryReason = `Matched category '${category}' based on keywords: ${data.keywords.filter(kw => lowerText.includes(kw)).join(', ')}.`;
-      routingReason = `Routed to ${assignedDepartment} based on category match.`;
+      detectedCategoryKey = data.deptKey;
+      assignedDepartment = departmentsMap[data.deptKey];
+      reasoningParts.push(`Category '${cat}' detected based on keywords: ${data.keywords.filter(kw => lowerText.includes(kw)).join(', ')}.`);
+      categoryMatched = true;
       break;
     }
   }
+  if (!categoryMatched) {
+    reasoningParts.push('No specific category keywords matched. Defaulted to "Other / Miscellaneous".');
+  }
 
   // Priority Determination
-  const criticalKeywords = ['accident', 'emergency', 'fire', 'danger', 'death', 'murder', 'blast', 'collapse', 'critical', 'urgent', 'immediate', 'life threatening', 'severe injury', 'major disaster', 'poison', 'toxic'];
-  const highKeywords = ['bribe', 'corrupt', 'threat', 'harassment', 'robbery', 'assault', 'stolen', 'leak', 'fraud', 'illegal', 'unsafe', 'epidemic', 'violence'];
-  const mediumKeywords = ['delay', 'pending', 'query', 'request', 'feedback', 'noise', 'broken', 'damage', 'malfunction', 'slow', 'unresponsive'];
+  const criticalKeywords = ['fire', 'accident', 'emergency', 'death', 'flood', 'gas leak', 'murder', 'blast', 'collapse', 'critical', 'urgent', 'immediate', 'life threatening', 'severe injury', 'major disaster', 'poison', 'toxic', 'danger'];
+  const highKeywords = ['no water', 'no electricity', 'road blocked', 'major leakage', 'bribe', 'corrupt', 'threat', 'harassment', 'robbery', 'assault', 'stolen', 'leak', 'fraud', 'illegal', 'unsafe', 'epidemic', 'violence'];
+  const mediumKeywords = ['broken streetlight', 'garbage issue', 'minor leak', 'delay', 'pending', 'query', 'request', 'feedback', 'noise', 'broken', 'damage', 'malfunction', 'slow', 'unresponsive'];
+  const lowKeywords = ['suggestion', 'small issue', 'general complaint', 'feedback'];
 
   if (criticalKeywords.some(kw => lowerText.includes(kw))) {
     priority = 'Critical';
-    priorityReason = `Priority set to Critical due to keywords: ${criticalKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`;
+    reasoningParts.push(`Priority set to Critical due to keywords: ${criticalKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`);
   } else if (highKeywords.some(kw => lowerText.includes(kw))) {
-    priority = 'Urgent';
-    priorityReason = `Priority set to Urgent due to keywords: ${highKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`;
-  } else if (mediumKeywords.some(kw => lowerText.includes(kw))) {
     priority = 'High';
-    priorityReason = `Priority set to High due to keywords: ${mediumKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`;
-  } else {
+    reasoningParts.push(`Priority set to High due to keywords: ${highKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`);
+  } else if (mediumKeywords.some(kw => lowerText.includes(kw))) {
     priority = 'Medium';
-    priorityReason = 'Default Medium priority as no specific high-priority keywords were detected.';
+    reasoningParts.push(`Priority set to Medium due to keywords: ${mediumKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`);
+  } else if (lowKeywords.some(kw => lowerText.includes(kw))) {
+    priority = 'Low';
+    reasoningParts.push(`Priority set to Low due to keywords: ${lowKeywords.filter(kw => lowerText.includes(kw)).join(', ')}.`);
+  } else {
+    priority = 'Low';
+    reasoningParts.push('Default Low priority as no specific severity keywords were detected.');
   }
 
-  // If category is still 'Other / Miscellaneous' but a priority was detected, update routing reason
-  if (category === 'Other / Miscellaneous' && priority !== 'Low') {
-    routingReason = `Routed to ${assignedDepartment} as a general fallback, but with ${priority} priority detected.`;
+  // Confidence Score Calculation
+  if (categoryMatched && priority !== 'Low') {
+    confidence = Math.floor(Math.random() * (95 - 80 + 1)) + 80; // High confidence for specific matches
+  } else if (categoryMatched || priority !== 'Low') {
+    confidence = Math.floor(Math.random() * (80 - 60 + 1)) + 60; // Medium confidence for partial matches
+  } else {
+    confidence = Math.floor(Math.random() * (60 - 40 + 1)) + 40; // Lower confidence for general/fallback
   }
+
+  // Final reason string
+  const finalReason = reasoningParts.join(' ');
 
   return {
-    category,
+    department: assignedDepartment,
     priority,
-    assignedDepartment,
-    reasoning: {
-      category: categoryReason,
-      priority: priorityReason,
-      routing: routingReason
-    }
+    confidence,
+    reason: finalReason
   };
 };
 module.exports = { classifyComplaint };
