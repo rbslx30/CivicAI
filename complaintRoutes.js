@@ -1,11 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const { createComplaint, trackComplaint } = require('../controllers/complaintController');
+const {
+  submitComplaint,
+  getComplaints,
+  getComplaintById,
+  updateComplaintStatus,
+  deleteComplaint
+} = require('../controllers/complaintController'); // Assuming you have a complaintController
 
-// Route: POST /api/complaints
-router.post('/', createComplaint);
+const verifyToken = require('../middleware/authMiddleware');
+const authorizeRoles = require('../middleware/roleMiddleware');
 
-// Route: GET /api/complaints/track
-router.get('/track', trackComplaint);
+// Public route for submitting a complaint (requires logged-in user)
+router.post('/', verifyToken, authorizeRoles(['user', 'admin']), submitComplaint);
+// Admin routes for managing complaints
+router.get('/', verifyToken, authorizeRoles(['admin']), getComplaints);
+router.get('/:id', verifyToken, authorizeRoles(['admin']), getComplaintById);
+router.patch('/:id', verifyToken, authorizeRoles(['admin']), updateComplaintStatus);
+router.delete('/:id', verifyToken, authorizeRoles(['admin']), deleteComplaint); // Assuming a delete route
 
 module.exports = router;

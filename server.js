@@ -1,14 +1,13 @@
 const express = require('express');
 const dotenv = require('dotenv');
+
+// Load env variables at the very beginning
+dotenv.config({ path: '../.env' });
+
 const cors = require('cors');
 const mongoose = require('mongoose');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
-const compression = require('compression');
 
 // Load env (Looking at the root directory where package.json sits)
-dotenv.config({ path: '../.env' });
 
 // Check required env
 if (!process.env.MONGO_URI) {
@@ -18,21 +17,25 @@ if (!process.env.MONGO_URI) {
 
 // Initialize app
 const app = express();
-app.disable('x-powered-by'); 
+app.disable('x-powered-by');
 
 // Security Middleware
-app.use(helmet()); 
-app.use(compression()); 
-app.use(mongoSanitize()); 
+// These middlewares are already in the context server.js, keeping them.
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const compression = require('compression');
+app.use(helmet());
+app.use(compression());
+app.use(mongoSanitize());
 
 // Rate Limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
+    windowMs: 15 * 60 * 1000,
     max: 100,
     message: { success: false, message: "Too many requests, please try again later." }
 });
 app.use('/api/', limiter);
-
 app.use((req, res, next) => {
     req.tenantId = req.headers['x-tenant-id'] || 'IN-MP-BHO';
     req.userRole = 'Admin'; 
@@ -55,19 +58,21 @@ app.use((req, res, next) => {
 });
 
 // Routes relative to backend/ directory
-app.use('/api/test', require('./routes/testRoutes'));
+// Ensure authRoutes is correctly linked
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/complaints', require('./routes/complaintRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 
-const { verifyToken, isAdmin } = require('./middleware/authMiddleware');
-app.use('/api/dashboard', verifyToken, isAdmin, require('./routes/dashboardRoutes'));
+// Import new authentication and authorization middlewares
+const verifyToken = require('./middleware/authMiddleware');
+const authorizeRoles = require('./middleware/roleMiddleware');
+app.use('/api/dashboard', verifyToken, authorizeRoles(['admin']), require('./routes/dashboardRoutes'));
 
 // Production Health Check
 app.get('/api/health', (req, res) => {
-    const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
-    res.status(200).json({ 
-        status: 'UP', 
+    const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'; // 1 = connected
+    res.status(200).json({
+        status: 'UP',
         database: dbStatus,
         environment: process.env.NODE_ENV || 'production', 
         timestamp: new Date() 
@@ -87,8 +92,8 @@ const startServer = async () => {
     try {
         console.log("⏳ Initializing MongoDB Connection...");
         
-        await mongoose.connect(process.env.MONGO_URI, {
-            serverSelectionTimeoutMS: 5000, 
+        await mongoose.connect(process.env.MONGO_URI); // Mongoose 6+ handles options internally
+        /* Removed deprecated options:
             socketTimeoutMS: 45000,
             maxPoolSize: 10,
         });
@@ -112,7 +117,7 @@ const startServer = async () => {
 
 const provisionAdmin = async () => {
     try {
-        const User = require('./models/User');
+        const User = require('./models/User'); // Ensure User model is imported here
         const bcrypt = require('bcryptjs');
         const adminEmail = 'admin@civicai.ai';
         const adminExists = await User.findOne({ email: adminEmail });

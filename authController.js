@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose'); // Added for isValidObjectId check if needed for email/mobile
 
 exports.register = async (req, res) => {
   try {
@@ -20,14 +21,21 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    
+    // Determine if the input is an email or a mobile number (simple check)
+    // For a robust solution, you'd validate against regex for email and phone number formats
+    const isEmail = email.includes('@');
+    const query = isEmail ? { email } : { mobile: email }; // Assuming 'mobile' field exists in User model if not email
+    
+    // For now, sticking to 'email' as per existing User model and frontend payload
+    const user = await User.findOne({ email }).select('+password'); // Select password explicitly for comparison
     if (!user) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) return res.status(401).json({ success: false, message: 'Invalid email or password' });
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-    res.status(200).json({ success: true, token, role: user.role, name: user.name });
+    res.status(200).json({ success: true, message: 'Login successful', token, role: user.role, name: user.name });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

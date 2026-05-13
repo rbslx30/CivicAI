@@ -1,12 +1,34 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'super_admin', 'department_admin'], default: 'user' },
-  department: { type: String, default: null }, // Required if role is department_admin
-  createdAt: { type: Date, default: Date.now }
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please add a name'],
+  },
+  email: {
+    type: String,
+    required: [true, 'Please add an email'],
+    unique: true,
+    match: [
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please add a valid email',
+    ],
+  },
+  password: {
+    type: String,
+    required: [true, 'Please add a password'],
+    minlength: 6,
+    select: false, // Don't return password by default in queries
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'super_admin', 'department_admin'], // Define possible roles
+    default: 'user',
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('User', UserSchema);

@@ -23,7 +23,7 @@ const adminLogin = async (req, res) => {
     console.log(`[Auth] ✓ Admin login successful: ${user.email} Role: ${user.role}`);
     const token = jwt.sign(
       { id: user._id, role: user.role, department: user.department },
-      process.env.JWT_SECRET || 'hackathon_secret', 
+      process.env.JWT_SECRET, // Strictly use JWT_SECRET from environment variables
       { expiresIn: '1d' }
     );
     return res.status(200).json({ success: true, token, role: user.role, department: user.department });

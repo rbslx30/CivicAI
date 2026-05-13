@@ -16,17 +16,23 @@
       <div class="card-header" style="text-align: center; justify-content: center;">
         <h2 class="card-title">Login</h2>
       </div>
-      <form id="login-form" style="display: flex; flex-direction: column; gap: 16px;">
+      <form id="login-form" method="POST" style="display: flex; flex-direction: column; gap: 16px;">
         <div class="field-group">
-          <label for="email">Email Address</label>
-          <input type="email" id="email" required placeholder="e.g. admin@civicai.ai" />
+          <label for="email_mobile">Email or Mobile</label>
+          <input type="text" id="email_mobile" name="email_mobile" required placeholder="e.g. admin@civicai.ai or 9876543210" />
         </div>
         <div class="field-group">
           <label for="password">Password</label>
-          <input type="password" id="password" required placeholder="••••••••" />
+          <input type="password" id="password" name="password" required placeholder="••••••••" />
         </div>
         <div id="auth-error" class="form-error"></div>
-        <button type="submit" class="btn-submit">Sign In</button>
+        <button type="submit" class="btn-submit" id="login-submit-btn">
+          <span class="btn-text">Sign In</span>
+          <span class="btn-loader" hidden>
+            <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-opacity=".25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/></svg>
+            Signing In...
+          </span>
+        </button>
       </form>
       <p style="text-align: center; margin-top: 16px; font-size: 14px; color: var(--text-muted);">
         Don't have an account? <a href="signup.html" style="color: var(--violet-lt); text-decoration: none;">Sign Up</a>
@@ -34,31 +40,59 @@
     </div>
   </main>
   <script>
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
+    const loginForm = document.getElementById('login-form');
+    const loginSubmitBtn = document.getElementById('login-submit-btn');
+    const loginBtnText = loginSubmitBtn.querySelector('.btn-text');
+    const loginBtnLoader = loginSubmitBtn.querySelector('.btn-loader');
+    const errorBox = document.getElementById('auth-error');
+
+    function showLoading(isLoading) {
+      loginBtnText.hidden = isLoading;
+      loginBtnLoader.hidden = !isLoading;
+      loginSubmitBtn.disabled = isLoading;
+    }
+
+    function showError(message) {
+      errorBox.textContent = message;
+      errorBox.classList.add('visible');
+    }
+
+    function clearError() {
+      errorBox.textContent = '';
+      errorBox.classList.remove('visible');
+    }
+
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value;
+      clearError();
+      showLoading(true);
+
+      const emailMobile = document.getElementById('email_mobile').value;
       const password = document.getElementById('password').value;
-      const errorBox = document.getElementById('auth-error');
-      
+
       try {
-            const res = await fetch('https://civicai-1gu2.onrender.com/api/auth/login', {          method: 'POST',
+        const res = await fetch('https://civicai-1gu2.onrender.com/api/auth/login', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ email: emailMobile, password }) // Use 'email' key for backend compatibility
         });
         const data = await res.json();
         if (data.success) {
           localStorage.setItem('adminToken', data.token);
           localStorage.setItem('userRole', data.role);
-          if (data.role === 'admin') window.location.href = 'dashboard.html';
-          else window.location.href = 'home.html';
+          if (data.role === 'admin') {
+            window.location.href = 'dashboard.html';
+          } else {
+            window.location.href = 'home.html'; // Or a user-specific portal
+          }
         } else {
-          errorBox.textContent = data.message;
-          errorBox.classList.add('visible');
+          showError(data.message || "Login failed.");
         }
       } catch (err) {
-        errorBox.textContent = "Server connection failed.";
-        errorBox.classList.add('visible');
+        console.error("Login error:", err);
+        showError("Server connection failed. Please try again.");
       }
+      showLoading(false);
     });
   </script>
 </body>

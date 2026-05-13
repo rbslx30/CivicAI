@@ -1,41 +1,29 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
 
-const verifyToken = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+/**
+ * @desc Middleware to protect routes by verifying JWT token
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ */
+const verifyToken = (req, res, next) => {
+  let token;
 
-  if (!token) return res.status(401).json({ success: false, message: 'Access Denied: No Token Provided' });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
-    if (!req.user) return res.status(404).json({ success: false, message: 'User not found' });
-    next();
-  } catch (error) {
-    res.status(403).json({ success: false, message: 'Invalid or Expired Token' });
-  }
-};
-
-const isAdmin = (req, res, next) => {
-  if (req.user && (req.user.role === 'super_admin' || req.user.role === 'department_admin')) {
-    next();
-  } else {
-    res.status(403).json({ success: false, message: 'Access Denied: Admin privileges required.' });
-  }
-};
-
-// Helper middleware for specific roles
-const authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        success: false, 
-        message: `Access Denied: You do not have the required role (${roles.join(', ')}).` 
-      });
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded; // Attach user payload (id, role) to the request
+      next();
+    } catch (error) {
+      console.error('Token verification failed:', error.message);
+      return res.status(401).json({ success: false, message: 'Not authorized, token failed' });
     }
-    next();
-  };
+  }
+
+  if (!token) {
+    return res.status(401).json({ success: false, message: 'Not authorized, no token' });
+  }
 };
 
-module.exports = { verifyToken, isAdmin, authorizeRoles };
+module.exports = verifyToken;
