@@ -22,8 +22,15 @@
           <input type="text" id="name" name="name" required placeholder="e.g. Ramesh Kumar" />
         </div>
         <div class="field-group">
-          <label for="email_mobile">Email or Mobile</label>
-          <input type="text" id="email_mobile" name="email_mobile" required placeholder="e.g. user@example.com or 9876543210" />
+          <label for="email">Email Address</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="email" id="email" name="email" required placeholder="e.g. user@example.com" style="flex: 1;" />
+            <button type="button" id="send-otp-btn" style="padding: 0 12px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap;">Send OTP</button>
+          </div>
+        </div>
+        <div class="field-group" id="otp-group" style="display: none;">
+          <label for="otp">Enter OTP</label>
+          <input type="text" id="otp" name="otp" placeholder="6-digit code" />
         </div>
         <div class="field-group">
           <label for="password">Password</label>
@@ -70,27 +77,93 @@
       errorBox.classList.remove('visible');
     }
 
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const otpGroup = document.getElementById('otp-group');
+    const otpInput = document.getElementById('otp');
+
+    sendOtpBtn.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      if (!email || !email.includes('@')) {
+        showError("Please enter a valid email address first.");
+        return;
+      }
+      
+      sendOtpBtn.textContent = 'Sending...';
+      sendOtpBtn.disabled = true;
+      clearError();
+
+      try {
+        const res = await fetch('https://civicai-1gu2.onrender.com/api/auth/send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          otpGroup.style.display = 'block';
+          sendOtpBtn.textContent = 'Sent ✅';
+          // Automatically focus OTP input
+          otpInput.focus();
+        } else {
+          showError(data.message || "Failed to send OTP.");
+          sendOtpBtn.textContent = 'Send OTP';
+          sendOtpBtn.disabled = false;
+        }
+      } catch (err) {
+        console.error("OTP error:", err);
+        showError("Server connection failed.");
+        sendOtpBtn.textContent = 'Send OTP';
+        sendOtpBtn.disabled = false;
+      }
+    });
+
     signupForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearError();
-      showLoading(true);
 
       const name = document.getElementById('name').value;
-      const emailMobile = document.getElementById('email_mobile').value; // Get value from new ID
+      const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
-      const confirmPassword = document.getElementById('confirm_password').value; // Get value from new input
+      const confirmPassword = document.getElementById('confirm_password').value;
+      const otp = otpInput.value;
       
       if (password !== confirmPassword) {
         showError("Passwords do not match.");
-        showLoading(false);
         return; // Stop submission if passwords don't match
       }
 
+      if (otpGroup.style.display === 'block' && !otp) {
+          showError("Please enter the OTP sent to your email.");
+          return;
+      }
+      if (otpGroup.style.display !== 'block') {
+          showError("Please verify your email with an OTP first.");
+          return;
+      }
+
+      showLoading(true);
+
       try {
+        // Step 1: Verify OTP
+        const otpRes = await fetch('https://civicai-1gu2.onrender.com/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp })
+        });
+        const otpData = await otpRes.json();
+        
+        if (!otpData.success) {
+           showError(otpData.message || "Invalid or expired OTP.");
+           showLoading(false);
+           return;
+        }
+
+        // Step 2: Create Account
         const res = await fetch('https://civicai-1gu2.onrender.com/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email: emailMobile, password }) // Use 'email' key for backend compatibility
+          body: JSON.stringify({ name, email, password })
         });
         const data = await res.json();
         if (data.success) {
