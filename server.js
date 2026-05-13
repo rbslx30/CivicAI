@@ -2,7 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 
 // Load env variables at the very beginning
-dotenv.config({ path: '../.env' });
+dotenv.config(); // Assumes .env is in the same directory as server.js, or is handled by Render's environment variables
 
 const cors = require('cors');
 const mongoose = require('mongoose');
